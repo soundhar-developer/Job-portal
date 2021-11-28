@@ -10,14 +10,14 @@
 
 # Owner credential to check data
 
-  Email : soundhars.developer@gmail.com
-  Password : abc@123
+  Email : soundharspike@gmail.com
+  Password : 12345
 
 # Sample Customer credential to check data
 
   Email : soundhar994@gmail.com
-  Password : abc@123
+  Password : 12345
 
 # DB
 	
-  Attached the schema in project as name of bikeserviceapplication.sql
+  Attached the schema in project as name of job_portal_db.sql
