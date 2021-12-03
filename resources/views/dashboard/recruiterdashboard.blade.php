@@ -36,7 +36,6 @@
                       </nav>
                     </div>
                 </header>
-                 ;
                 
                 <div class="container mt-3">
                   <h2>Recruiter Panel</h2>
@@ -130,6 +129,8 @@
                               <th>Job Title</th>
                               <th>Phone</th>
                               <th>Experience</th>
+                              <th>Photo</th>
+                              <th>Resume</th>
                             </tr>
                           </thead>
                           <tbody id="allAppliedJob">
@@ -139,7 +140,7 @@
                   </div>
                 </div>
             
-                <!-- Modal -->
+              <!-- Modal -->
               <div class="modal fade" id="addJobModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                   <div class="modal-dialog">
                     <div class="modal-content">
