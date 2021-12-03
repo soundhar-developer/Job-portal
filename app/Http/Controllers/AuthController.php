@@ -19,13 +19,24 @@ class AuthController extends Controller
     */
     public function login(Request $request)
     {
-        try {
-            request()->validate([
+            $validator = Validator::make($request->all(), [
                 'email' => 'required',
                 'password' => 'required',
             ]);
+
+            if ($validator->fails()) {
+                Session::flash('error', $validator->messages()->first());
+                return redirect()->back()->withInput();
+            }
+
             $credentials = $request->only('email', 'password');
             $user = User::where('email', $request->get('email'))->first();
+            
+            if (!$user) {
+                Session::flash('error', 'Invalid Email.If you are not register please signup.');
+                return redirect()->back()->withInput();
+            }
+
             if (Auth::attempt($credentials)) {
                 // Authentication passed...
                 Session::put('user', $user);
@@ -34,19 +45,16 @@ class AuthController extends Controller
                 $data['id'] = $user->id;
                 $data['name'] = $user->name;
                 $data['user_type'] = $user->user_type;
-            } else if ( $user->password != Hash::make($request->get('password')) || $user->email != $request->get('email') ) {
-                $data['success'] = false;
-                $data['message'] = "Email/password is incorrect.";
             } else {
-                $data['success'] = false;
-                $data['message'] = "Invalid Email.If you are not register please signup.";
+                Session::flash('error', 'Email/Password is incorrect.');
+                return redirect()->back()->withInput();
             }
-        } catch(\Exception $e) {
-            Log::info($e->getMessage());
-            $data['success'] = false;
-            $data['message'] = "Invalid Email.If you are not register please signup.";
-        }
-        return response()->json(['data' => $data]);
+
+            if($user->user_type == "job_seeker") {
+                return redirect('/jobseeker/dashboard');
+            } else {
+                return redirect('/recruiter/dashboard');
+            }
     }
 
     /*
