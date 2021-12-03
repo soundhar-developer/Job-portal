@@ -36,10 +36,21 @@
             </div>
 
           </header>
+            @if(session()->has('success'))
+                <div class="alert alert-success">
+                    {{ session()->get('message') }}
+                </div>
+            @endif
+
+            @if(session()->has('error'))
+                <div class="alert alert-danger">
+                    {{ session()->get('error') }}
+                </div>
+            @endif
 
             <main>
                 <div class="container">
-                    <form id="jobSeekerModalForm">
+                    <form id="jobSeekerModalForm" action="/createJobSeeker" enctype="multipart/form-data" method="post" accept-charset="utf-8">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">
