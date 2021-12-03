@@ -22,13 +22,19 @@ class RecruiterController extends Controller
     ** Create recruiter
     */
     public function store(Request $request) {
-        DB::beginTransaction();
-        Log::info($request->all());
-        try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'company_name' => 'required',
                 'email' => 'required',
+                'phone' => 'required',
+                'address' => 'required',
+                'password' => 'required',
+                'confirm_password' => 'required',
             ]);
+
+            if ($validator->fails()) {
+                Session::flash('error', $validator->messages()->first());
+                return redirect()->back()->withInput();
+           }
 
             $data = [
                 'company_name' => $request->get('company_name'),
@@ -41,13 +47,12 @@ class RecruiterController extends Controller
             $checkMail = Recruiter::where('email', $request->get('email'))->first();
 
             if($request->get('password') != $request->get('confirm_password')) {
-                $response['success'] = false;
-                $response['message'] = "Confirm password is mismatch!";
+                Session::flash('error', 'Confirm password is mismatched!');
+                return redirect()->back()->withInput();
             } else if($checkMail) {
-                $response['success'] = false;
-                $response['message'] = "Email has been already used!";
+                Session::flash('error', 'Email has been already used!');
+                return redirect()->back()->withInput();
             } else {
-                Log::info("innnnnn");
                 $recruiter = Recruiter::create($data);
                 if($recruiter) {
                     $userData = [
@@ -57,26 +62,10 @@ class RecruiterController extends Controller
                         'user_type_id' => $recruiter->id,
                         'password' => Hash::make($request->get('password'))
                     ];
-                    Log::info($userData);
                     $createUser = User::create($userData);
-                    DB::commit(); 
-                    $response['success'] = true;
-                    $response['message'] = "Account has been created successfully!";
-                } else {
-                    $response['success'] = false;
-                    $response['message'] = "Something went wrong!";
                 }
             }
-
-        } catch (\Exception $e) {
-            Log::info($e->getMessage());
-            DB::rollback();
-            $response['success'] = false;
-            $response['message'] = "Something went wrong!";
-        }
-
-        return response()->json(['data' => $response]);
-
+        return redirect('/login');
     }
 
     /*
@@ -162,16 +151,11 @@ class RecruiterController extends Controller
     ** Filter candidate
     */
     public function filterCandidate(Request $request) {
-        DB::beginTransaction();
-        try {
-           $data = JobSeeker::where('skills' , $request->get('skills'))->where('location', $request->get('location'))->where('notice_period', $request->get('notice_period'))->whereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->get();
-        } catch(\Exception $e) {
-            Log::info($e->getMessage());
-            DB::rollback();
-            $data['success'] = false;
-            $data['message'] = "Something went wrong!";
+        if($request->get('skills') != '' && $request->get('location') != '' && $request->get('min_experience') != '' && $request->get('max_experience') != '' && $request->get('notice_period') != '') {
+            $data = JobSeeker::where('skills' , $request->get('skills'))->where('location', $request->get('location'))->where('notice_period', $request->get('notice_period'))->whereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->get();
+        } else {
+            $data = JobSeeker::orWhere('skills' , $request->get('skills'))->orWhere('location', $request->get('location'))->orWhere('notice_period', $request->get('notice_period'))->orWhereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->get();
         }
-
         return response()->json(['data' => $data]);
     }
 
@@ -179,7 +163,7 @@ class RecruiterController extends Controller
     ** Get all job
     */
     public function getAllJob() {
-        $job = Job::all();
+        $job = Job::where('recruiter_id', Session::get('user')->user_type_id)->get();
         return response()->json(['data' => $job]);
     } 
 
