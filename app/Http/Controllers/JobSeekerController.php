@@ -31,12 +31,31 @@ class JobSeekerController extends Controller
     ** Create job seeker
     */
     public function store(Request $request) {
-    	DB::beginTransaction();
-        try {
-            $request->validate([
+    	
+        $validator = Validator::make($request->all(), [
                 'name' => 'required',
                 'email' => 'required',
+                'phone' => 'required',
+                'experience' => 'required',
+                'notice_period' => 'required',
+                'skills' => 'required',
+                'location' => 'required',
+                'password' => 'required',
+                'confirm_password' => 'required',
+                'photoFile' => 'required',
+                'resumeFile' => 'required'
             ]);
+
+        if ($validator->fails()) {
+            Session::flash('error', $validator->messages()->first());
+            return redirect()->back()->withInput();
+       }
+
+            $file = $request->file('photoFile');
+            $resume = $request->file('resumeFile');
+
+            $filename = 'profile-photo-'.time().'.'.$file->getClientOriginalExtension();
+            $resumeFilename = 'resume-'.time().'.'.$resume->getClientOriginalExtension();
 
             $data = [
                 'name' => $request->get('name'),
@@ -46,18 +65,24 @@ class JobSeekerController extends Controller
                 'notice_period' => $request->get('notice_period'),
                 'skills' => $request->get('skills'),
                 'location' => $request->get('location'),
+                'resume' => $resumeFilename,
+                'photo' => $filename,
                 'password' => Hash::make($request->get('password'))
             ];
 
             $checkMail = JobSeeker::where('email', $request->get('email'))->first();
             if($request->get('password') != $request->get('confirm_password')) {
-                $response['success'] = false;
-                $response['message'] = "Confirm password is mismatched!";
+                 Session::flash('error', 'Confirm password is mismatched!');
+                 return redirect()->back()->withInput();
             } else if($checkMail) {
-                $response['success'] = false;
-                $response['message'] = "Email has been already used!";
+                 Session::flash('error', 'Email has been already used!');
+                 return redirect()->back()->withInput();
             } else {
+                
+                $path = $file->storeAs('public/photos', $filename);
+                $resumepath = $file->storeAs('public/resumes', $resumeFilename);
                 $jobSeeker = JobSeeker::create($data);
+
                 if($jobSeeker) {
                     $userData = [
                         'name' => $request->get('name'),
@@ -68,48 +93,25 @@ class JobSeekerController extends Controller
                     ];
                     $createUser = User::create($userData);
                 }
-                DB::commit(); 
-                if($jobSeeker) {
-                    $response['success'] = true;
-                    $response['message'] = "Account has been created successfully!";
-                } else {
-                    $response['success'] = false;
-                    $response['message'] = "Something went wrong!";
-                }
-            }
-
-        } catch (\Exception $e) {
-            Log::info($e->getMessage());
-            DB::rollback();
-            $response['success'] = false;
-            $response['message'] = "Something went wrong!";
-        }
-
-        return response()->json(['data' => $response]);
-    	
+            }  
+        return redirect('/login');
 	}
+
 
     /*
     ** Search active jobs
     */
     public function searchActiveJob(Request $request) {
-        DB::beginTransaction();
-        try {
-           $job = Job::where('skills_required' , $request->get('skills'))->where('location', $request->get('location'))->whereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->with('recruiter')->get();
-           $data = [];
-           foreach ($job as $key => $value) {
-                if( $value['recruiter']->company_name == $request->get('company_name') ) {
-                    array_push($data, $job[$key]);
-                }
-            } 
-        } catch(\Exception $e) {
-            Log::info($e->getMessage());
-            DB::rollback();
-            $data['success'] = false;
-            $data['message'] = "Something went wrong!";
+        if($request->get('skills') != '' && $request->get('location') != '' && $request->get('min_experience') != '' && $request->get('max_experience') != '' && $request->get('company_name') != '') {
+            $job = Job::where('skills_required' , $request->get('skills'))->where('location', $request->get('location'))->whereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->with('recruiter')->whereHas('recruiter', function($q) use ($request) {
+                $q->where('company_name' ,$request->get('company_name'));
+            })->get();
+        } else {
+            $job = Job::orWhere('skills_required' , $request->get('skills'))->orWhere('location', $request->get('location'))->orWhereBetween('experience', [$request->get('min_experience'), $request->get('max_experience')])->with('recruiter')->whereHas('recruiter', function($q) use ($request) {
+                $q->where('company_name' ,$request->get('company_name'));
+            })->get();
         }
-
-        return response()->json(['data' => $data]);
+        return response()->json(['data' => $job]);
     }
 
     /*
