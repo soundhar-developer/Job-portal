@@ -37,11 +37,24 @@
                     </div>
 
                   </header>
+
+                  @if(session()->has('success'))
+                      <div class="alert alert-success">
+                          {{ session()->get('message') }}
+                      </div>
+                  @endif
+
+                  @if(session()->has('error'))
+                      <div class="alert alert-danger">
+                          {{ session()->get('error') }}
+                      </div>
+                  @endif
+
                   <div class="row">
                       <div class="col-md-4"></div>
                       <div class="col-md-4 card p-4 shadow mt-4 bg-body rounded">
                           <h4 class="text-center">Login</h4>
-                          <form id="loginForm">
+                          <form id="loginForm" action="/userLogin" enctype="multipart/form-data" method="post" accept-charset="utf-8">
                               @csrf
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email</label>
