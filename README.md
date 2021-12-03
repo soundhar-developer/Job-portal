@@ -2,7 +2,7 @@
 
 # Clone repo using below command 
 
- git clone https://github.com/soundhar-developer/bike-service-application.git
+ git clone https://github.com/soundhar-developer/Job-portal
 
 # Run project
   
