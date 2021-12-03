@@ -1,7 +1,7 @@
 $(document).ready(function() {
 	getLocation();
-	$('#jobTab').trigger('click');
 	getActiveJob();
+	$('#jobTab').trigger('click');
 })
 
 
@@ -42,72 +42,6 @@ function getLocation() {
 	})
 }
 
-
-$('#jobSeekerModalForm').submit(function() {
-	$.ajax({
-		url     : '/createJobSeeker',
-        type    : 'post',
-        data    :  $(this).serialize(),
-		dataType : 'json',
-		success:function(response) {
-			if(response.data.success == true) {
-				alert(response.data.message);
-				window.location.replace("/login");
-			} else {
-				alert(response.data.message);
-			}
-		},
-		error:function(response) {
-			alert("Something went wrong!");
-		}
-	})
-	return false;
-})
-
-
-$('#recruiterModalForm').submit(function() {
-	$.ajax({
-		url     : '/createRecruiter',
-        type    : 'post',
-        data    :  $(this).serialize(),
-		dataType : 'json',
-		success:function(response) {
-			if(response.data.success == true) {
-				alert(response.data.message);
-				window.location.replace("/login");
-			} else {
-				alert(response.data.message);
-			}
-		},
-		error:function(response) {
-			alert("Required field are missing");
-		}
-	})
-	return false;
-})
-
-
-$('#loginForm').submit(function() {
-	$.ajax({
-		url     : '/userLogin',
-        type    : 'post',
-        data    :  $(this).serialize(),
-		dataType : 'json',
-		success:function(response) {
-			if(response.data.success == true) {
-				alert(response.data.message);
-				if(response.data.user_type == "recruiter") {
-					window.location.replace('/recruiter/dashboard');
-				} else {
-					window.location.replace('/jobseeker/dashboard');
-				}
-			} else {
-				alert(response.data.message);
-			}
-		}
-	})
-	return false;
-})
 
 
 $('#addJobForm').submit(function() {
@@ -251,9 +185,6 @@ function fetchJob(jobId) {
 
 
 $('#searchActiveJobForm').submit(function() {
-	if($('#skills').val() == '' || $('#company_name').val() == '' || $('#min_experience').val() == '' || $('#max_experience').val() == '' || $('#seeker_location').val() == '') {
-		alert('All filters fields are mandatory!');
-	} else {
 		$.ajax({
 			url     : '/searchActiveJob',
 	        type    : 'post',
@@ -279,7 +210,6 @@ $('#searchActiveJobForm').submit(function() {
 				alert(response.data.message);
 			}
 		})
-	}
 	return false;
 })
 
@@ -305,9 +235,6 @@ function applyJob(jobId, recruiterId) {
 
 
 $('#filterCandidateForm').submit(function() {
-	if($('#skills').val() == '' || $('#notice_period').val() == '' || $('#min_experience').val() == '' || $('#max_experience').val() == '' || $('#candidate_location').val() == '') {
-		alert('All filters fields are mandatory!');
-	} else {
 		$.ajax({
 			url     : '/filterCandidate',
 	        type    : 'post',
@@ -328,7 +255,6 @@ $('#filterCandidateForm').submit(function() {
 				alert(response.data.message);
 			}
 		})
-	}
 	return false;
 })
 
@@ -362,7 +288,9 @@ function getAllAppliedJob() {
 			$('#allAppliedJob').html('');
 			if(response.data.length > 0) {
 				for (var i = 0; i < response.data.length; i++) {
-					$('#allAppliedJob').append('<tr id="row'+ i +'"><td>'+ response.data[i].canditate_name +'</td><td>'+ response.data[i].job_title +'</td><td>'+ response.data[i].phone  +'</td><td>'+ response.data[i].experience +'</td></tr>'
+					var imageUrl = "/storage/photos/"+ response.data[i].photo;
+					var resumeUrl = "/storage/photos/"+ response.data[i].resume;
+					$('#allAppliedJob').append('<tr id="row'+ i +'"><td>'+ response.data[i].canditate_name +'</td><td>'+ response.data[i].job_title +'</td><td>'+ response.data[i].phone  +'</td><td>'+ response.data[i].experience +'</td><td style="width: 40%;"><img src="'+ imageUrl +'" style="width: 30%;" alt="" title="" /></td><td><a href="'+ resumeUrl +'" download>Download Resume</a></td></tr>'
 						);
 				}
 			} else {
@@ -371,5 +299,7 @@ function getAllAppliedJob() {
 		}
 	})
 }
+
+
 
 
