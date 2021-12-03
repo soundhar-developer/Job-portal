@@ -31,13 +31,21 @@ Route::get('/recruiter/register', function () {
     return view('recruiterregister');
 });
 
-Route::get('/jobseeker/dashboard', function () {
-    return view('dashboard.jobseekerdashboard');
-});
+Route::group(['middleware' => 'App\Http\Middleware\CheckJobSeeker'], function()
+    {
+        Route::get('/jobseeker/dashboard', function () {
+            return view('dashboard.jobseekerdashboard');
+        });   
+    });
 
-Route::get('/recruiter/dashboard', function () {
-    return view('dashboard.recruiterdashboard');
-});
+
+Route::group(['middleware' => 'App\Http\Middleware\CheckRecruiter'], function()
+    {
+        Route::get('/recruiter/dashboard', function () {
+            return view('dashboard.recruiterdashboard');
+        });   
+    });
+
 
 Route::post('/addJob', 'App\Http\Controllers\RecruiterController@addJob');
 
@@ -67,14 +75,8 @@ Route::post('/createRecruiter', 'App\Http\Controllers\RecruiterController@store'
 
 Route::get('/getJobLocation', 'App\Http\Controllers\JobSeekerController@getJobLocation');
 
-Route::post('/userLogin', 'App\Http\Controllers\AuthController@login')->middleware('emailcheck');
+Route::post('/userLogin', 'App\Http\Controllers\AuthController@login');
 
 Route::get('/userLogout', 'App\Http\Controllers\AuthController@logout');
 
 
-
-// Route::prefix('manager')->group(function () {
-//         Route::get('/', 'Manager\ManagerController@index')->name('manager');
-//         Route::get('/auditordata/{auditor_id}', 'Manager\ManagerController@auditorAudits');
-//         Route::post('/assign-auditor', 'Manager\ManagerController@assignAuditor')->name('assign_auditor');
-//     });
